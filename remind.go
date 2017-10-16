@@ -15,6 +15,7 @@ import (
 	twilio "github.com/saintpete/twilio-go"
 )
 
+//Struct to hold the various key data
 type datAuth struct {
 	Sid    string `json:"sid"`
 	Token  string `json:"token"`
@@ -58,6 +59,7 @@ type fullLyricMessage struct {
 	Body fullLyricBody `json:"message"`
 }
 
+//Gets
 func getSongID(artist, track, api string) string {
 	base := "http://api.musixmatch.com/ws/1.1/track.search?apikey=" + api
 	var b bytes.Buffer
@@ -103,7 +105,7 @@ func getSongLyrics(ID, api string) string {
 }
 
 func main() {
-	var artist, title, keys, span string
+	var artist, title, keys, span string //Variables for getting the command line args corresponding to the variables' names
 	flag.StringVar(&artist, "artist", "", "The name of the artist of the song you want to lookup")
 	flag.StringVar(&title, "title", "", "The name of the song you want to lookup")
 	flag.StringVar(&keys, "keys", "", "The location of the keys for the Twilio and MusixMatch API's")
