@@ -59,7 +59,6 @@ type fullLyricMessage struct {
 	Body fullLyricBody `json:"message"`
 }
 
-//Gets
 func getSongID(artist, track, api string) string {
 	base := "http://api.musixmatch.com/ws/1.1/track.search?apikey=" + api
 	var b bytes.Buffer
@@ -105,13 +104,19 @@ func getSongLyrics(ID, api string) string {
 }
 
 func main() {
-	var artist, title, keys, span string //Variables for getting the command line args corresponding to the variables' names
+	var artist, title, keys, span, from, to string
 	flag.StringVar(&artist, "artist", "", "The name of the artist of the song you want to lookup")
 	flag.StringVar(&title, "title", "", "The name of the song you want to lookup")
+	flag.StringVar(&to, "to", "", "The phone number you're sending to in the format '+(Country Code)(Area Code)(Phone Number)', ex. '+17015559999")
+	flag.StringVar(&from, "from", "", "The twilio number you're sending from, if not included, it's assumed that you have it in your keys .json file")
 	flag.StringVar(&keys, "keys", "", "The location of the keys for the Twilio and MusixMatch API's")
 	flag.StringVar(&span, "span", "", "The time span over which the lyrics are to be sent every 'span' / 'number of verses' amount of time")
+	flag.Parse()
 	if keys == "" {
 		log.Fatal("Need the location for the API keys, please")
+	}
+	if to == "" {
+		log.Fatal("Need a phone number to send to")
 	}
 	var dat datAuth
 	bdata, err := ioutil.ReadFile(keys)
@@ -121,6 +126,9 @@ func main() {
 	err = json.Unmarshal(bdata, &dat)
 	if err != nil {
 		log.Fatal("Error Unmarshalling the data")
+	}
+	if from == "" {
+		from = dat.Number
 	}
 	lyrics := getSongLyrics(getSongID(artist, title, dat.Lkey), dat.Lkey)
 	client := twilio.NewClient(dat.Sid, dat.Token, nil)
@@ -134,9 +142,9 @@ func main() {
 		slyrics := strings.Split(lyrics, "\n\n")
 		for _, l := range slyrics[:len(slyrics)-1] {
 			time.Sleep(time.Duration(tTime.Nanoseconds() / int64(len(slyrics)-1)))
-			_, err = client.Messages.SendMessage(dat.Number, "+17013186330", l, nil)
+			_, err = client.Messages.SendMessage(dat.Number, to, l, nil)
 		}
 	} else {
-		_, err = client.Messages.SendMessage(dat.Number, "+17013186330", lyrics, nil)
+		_, err = client.Messages.SendMessage(dat.Number, to, lyrics, nil)
 	}
 }
