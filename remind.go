@@ -129,7 +129,7 @@ func main() {
 	var dat datAuth
 	bdata, err := ioutil.ReadFile(keys)
 	if err != nil {
-		log.Fatal("Could not read data properly")
+		log.Fatal("Could not read data properly", err)
 	}
 
 	//Unmarshaling the data into a datAuth struct to hold sensative information
@@ -145,9 +145,13 @@ func main() {
 	}
 
 	//Get the ID, and then get the lyrics with the returning ID from that function
-	lyrics := getSongLyrics(getSongID(artist, title, dat.Lkey), dat.Lkey)
+	//lyrics := getSongLyrics(getSongID(artist, title, dat.Lkey), dat.Lkey)
 	client := twilio.NewClient(dat.Sid, dat.Token, nil)
-
+	if u, err := url.Parse("http://therileyjohnson.com/public/files/mp3/freshmanEdit.mp3"); err == nil {
+		jack := "+17013186329"
+		//matt := "+17014467380"
+		client.Calls.MakeCall(dat.Number, jack, u)
+	}
 	//Split the lyrics up by the sections of lyrics seperated by two newlines
 	slyrics := strings.Split(lyrics, "\n\n")
 
